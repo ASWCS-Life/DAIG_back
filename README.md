@@ -65,7 +65,7 @@ DAIG 프론트엔드 링크: "https://github.com/ASWCS-Life/DAIG_front"
 First, you need to install python libraries which are listed above.
 Or you can use requirement file.
 Then use manage.py for Django server launch. One exmaple is 
-```python manage.py runserver 0.0.0.0:8000```
+```python manage.py runserver 0.0.0.0:8000```.
 Refer Django reference book for more detail
 
 첫 번째로, 위 리스트에 있는 파이썬 라이브러리를 설치하셔야 합니다.
