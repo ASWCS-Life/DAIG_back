@@ -22,8 +22,6 @@ class projectManager:
         self.epoch = 0
         self.batch_size = 0
 
-        self.error_count = 0
-
         self.result_weight = np.array([])
         self.step_gradient = np.array([])
 
@@ -98,16 +96,6 @@ class projectManager:
         self.epoch = epoch
         self.batch_size = batch_size
 
-    def start_project(self):
-        self.status = 'INPROGRESS'
-
-    def error_report(self):
-        self.error_count += 1
-        if(self.error_count > 2):
-            self.status = 'ERROR'
-
-    def block(self):
-        self.status = 'BLOCKED'
     ##################################################################
     # Get functions
 
@@ -181,6 +169,14 @@ class projectManager:
 
     ##################################################################
     # Update and Perform related functions
+    def start_project(self):
+        self.status = 'INPROGRESS'
+
+    def error_report(self):
+        self.status = 'ERROR'
+
+    def block(self):
+        self.status = 'BLOCKED'
 
     def start_task(self, task_index):
         if(task_index < 0):
@@ -232,6 +228,14 @@ class projectManager:
 
         return self.current_step_done_count
 
+    def stop_task(self, task_no):
+        task_number = int(task_no)
+        step = math.floor(task_number / self.task_step_size)
+
+        if(step == self.current_step):
+            if(self.task_step_schedule[task_number % self.task_step_size] != DONE):
+                self.task_step_schedule[task_number % self.task_step_size] = STANDBY
+            
     ###################################################################
     # logical functions
 

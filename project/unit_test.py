@@ -8,6 +8,7 @@ class ProjectManagerTests(unittest.TestCase):
 
     def init(self):
         self.project_manager = projectManager()
+        self.project_manager.start_project()
 
     def get_random_gradient(self):
         tmp_weight = [np.random.rand(9)/10, np.random.rand(9)/10]
@@ -111,7 +112,11 @@ class ProjectManagerTests(unittest.TestCase):
         time.sleep(5)
         self.assertEqual(self.project_manager.get_step(), 1)
         
-
+    def test_schdule_simulation_single(self):
+        self.test_project_weight_initialization()
+        self.project_manager.error_report()
+        self.assertFalse(self.project_manager.is_project_available())
+        
 # execute unit test
 if __name__ == '__main__':  
     unittest.main()

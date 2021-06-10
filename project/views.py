@@ -589,6 +589,12 @@ def error_report(request, project_uid):
 
     schedule_manager.error_report(project_uid)
 
+def stop_project_task(request, projecy_uid):
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({
+            "is_successful":False,
+            "message":"[ERROR] POST ONLY"
+        }),content_type='application/json')
 
 # Belows are not for http requests. Belows are blocks for them
 
