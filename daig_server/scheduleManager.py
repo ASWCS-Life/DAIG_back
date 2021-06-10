@@ -78,6 +78,9 @@ class scheduleManager:
     def start_project_task(self, project_id, task_no):
         self.project_list[project_id].start_task(task_no)
 
+    def error_report(self, project_id):
+        self.project_list[project_id].error_report()
+
     ##################################################################
     # Get function for getting various overall projects information
 

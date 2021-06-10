@@ -580,6 +580,15 @@ def get_owned_projects(request):
     })
 
 
+def error_report(request, project_uid):
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({
+            "is_successful":False,
+            "message":"[ERROR] POST ONLY"
+        }),content_type='application/json')
+
+    schedule_manager.error_report(project_uid)
+
 
 # Belows are not for http requests. Belows are blocks for them
 
@@ -591,7 +600,6 @@ def check_authorization(authorization_key):
         })
     else:
         return False
-
 
 def create_credit_log(case, userKey, amount):
     

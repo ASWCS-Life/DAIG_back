@@ -22,6 +22,8 @@ class projectManager:
         self.epoch = 0
         self.batch_size = 0
 
+        self.error_count = 0
+
         self.result_weight = np.array([])
         self.step_gradient = np.array([])
 
@@ -98,6 +100,14 @@ class projectManager:
 
     def start_project(self):
         self.status = 'INPROGRESS'
+
+    def error_report(self):
+        self.error_count += 1
+        if(self.error_count > 2):
+            self.status = 'ERROR'
+
+    def block(self):
+        self.status = 'BLOCKED'
     ##################################################################
     # Get functions
 
@@ -232,7 +242,7 @@ class projectManager:
         return self.current_step_done_count == self.task_step_size
 
     def is_project_available(self):
-        return not(self.is_max_contributor() or self.is_project_finished() or (self.get_task_index_proto() == -1))
+        return not(self.is_max_contributor() or self.is_project_finished() or (self.get_task_index_proto() == -1)) and (self.status == 'INPROGRESS')
 
     def task_time_limit_check(self, task_time):
         return (time.time() - task_time) > (self.time_threshold * 1.5)
