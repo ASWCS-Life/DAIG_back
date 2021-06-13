@@ -26,20 +26,20 @@ INVALID = -1
 BUCKET_NAME = 'DAIG'
 
 def create_project(request):
-    if request.method!='POST':
+    if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key=key).exists()==False:
+    if User.objects.filter(key = key).exists()  ==  False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
         })
 
-    user=User.objects.get(key=key)
+    user = User.objects.get(key = key)
 
     uid = str(ObjectId())
     max_contributor = request.POST.get('max_contributor', '-1')
@@ -58,20 +58,20 @@ def create_project(request):
     valid_rate = float(valid_rate)
     parameter_number = int(parameter_number)
 
-    credit = _calculate_credit(parameter_number=parameter_number,epoch=epoch,
-        batch_size=batch_size, total_task=total_task)
+    credit = _calculate_credit(parameter_number = parameter_number,epoch = epoch,
+        batch_size = batch_size, total_task = total_task)
 
     status = 'STANDBY'
 
-    project = Project.objects.create(uid=uid,owner=user,
-        max_contributor=max_contributor,status=status, max_step = int(total_task/step_size),
+    project = Project.objects.create(uid = uid,owner = user,
+        max_contributor = max_contributor,status = status, max_step = int(total_task/step_size),
         created_at = timezone.now(),
         step_size = step_size, epoch = epoch, batch_size = batch_size, valid_rate = valid_rate,
         credit = credit)
 
     numpy_file = request.FILES.get('weight', INVALID)
 
-    if(numpy_file == INVALID):
+    if(numpy_file  ==  INVALID):
         return JsonResponse({
             "is_successful":False,
             "message":"Invalid Numpy data"
@@ -79,8 +79,8 @@ def create_project(request):
 
     init_weight = np.load(request.FILES.get('weight'),allow_pickle = True)
 
-    schedule_manager.init_project(project_id=uid,total_task=total_task,step_size=step_size,
-        weight=init_weight, epoch=epoch, batch_size = batch_size, max_contributor=max_contributor, credit=credit)
+    schedule_manager.init_project(project_id = uid,total_task = total_task,step_size = step_size,
+        weight = init_weight, epoch = epoch, batch_size = batch_size, max_contributor = max_contributor, credit = credit)
 
     return JsonResponse({
         "is_successful":True,
@@ -91,23 +91,23 @@ def create_project(request):
     })
 
 def start_project(request, project_uid): 
-    if request.method!='POST':
+    if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key=key).exists()==False:
+    if User.objects.filter(key = key).exists() == False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
         })
     
-    project = Project.objects.get(uid=project_uid)
+    project = Project.objects.get(uid = project_uid)
 
     if(project.exists()):
-        project.status='INPROGRESS'
+        project.status = 'INPROGRESS'
         project.status = 'started'
         project.started_at = timezone.now()
         project.save()
@@ -134,14 +134,14 @@ def start_project(request, project_uid):
 #     "label":""
 # }
 def get_data_url(request):
-    if request.method!='POST':
+    if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key=key).exists()==False:
+    if User.objects.filter(key = key).exists() == False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
@@ -154,24 +154,24 @@ def get_data_url(request):
     index = request.POST.get('index', '')
     project_uid = request.POST.get('project_uid', '')
 
-    project=Project.objects.get(uid=project_uid)
+    project = Project.objects.get(uid = project_uid)
 
-    task=Task.objects.create(uid=(project.uid+str(index)), credit = project.credit, project=project)
+    task = Task.objects.create(uid = (project.uid+str(index)), credit = project.credit, project = project)
 
-    task.data_url=f'project/{project_uid}/task/{task.uid}/{data}'
-    task.label_url=f'project/{project_uid}/task/{task.uid}/{label}'
+    task.data_url = f'project/{project_uid}/task/{task.uid}/{data}'
+    task.label_url = f'project/{project_uid}/task/{task.uid}/{label}'
 
     task.save()
 
-    data_url=s3.generate_presigned_url("put_object",Params={
+    data_url = s3.generate_presigned_url("put_object",Params = {
         'Bucket':BUCKET_NAME,
         'Key':task.data_url
-    }, ExpiresIn=3600)
+    }, ExpiresIn = 3600)
 
-    label_url=s3.generate_presigned_url("put_object",Params={
+    label_url = s3.generate_presigned_url("put_object",Params = {
         'Bucket':BUCKET_NAME,
         'Key':task.label_url
-    }, ExpiresIn=3600)
+    }, ExpiresIn = 3600)
     
     return JsonResponse({
         "is_succesful":True,
@@ -185,14 +185,14 @@ def get_data_url(request):
 #     "model":"",
 # }
 def get_model_url(request):
-    if request.method!='POST':
+    if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key=key).exists()==False:
+    if User.objects.filter(key = key).exists() == False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
@@ -203,13 +203,13 @@ def get_model_url(request):
     model = request.POST.get('model', '')
     project_uid = request.POST.get('project_uid', '')
 
-    project=Project.objects.get(uid=project_uid)
-    project.model_url=f'project/{project_uid}/model/{model}'
+    project = Project.objects.get(uid = project_uid)
+    project.model_url = f'project/{project_uid}/model/{model}'
     project.save()
-    url=s3.generate_presigned_url("put_object",Params={
+    url = s3.generate_presigned_url("put_object",Params = {
         'Bucket':BUCKET_NAME,
         'Key':project.model_url
-    }, ExpiresIn=3600)
+    }, ExpiresIn = 3600)
 
     return JsonResponse({
         "is_succesful":True,
@@ -217,14 +217,14 @@ def get_model_url(request):
     })
 
 def get_model_url_for_learnig(request, project_uid):
-    if request.method!='GET':
+    if request.method != 'GET':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key=key).exists()==False:
+    if User.objects.filter(key = key).exists() == False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
@@ -233,7 +233,7 @@ def get_model_url_for_learnig(request, project_uid):
     
 
 def get_project_weight(request, project_uid):
-    if request.method!='GET':
+    if request.method != 'GET':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] GET ONLY"
@@ -244,13 +244,13 @@ def get_project_weight(request, project_uid):
     if(authorization_result): return authorization_result
 
     with TemporaryFile() as tf:
-        np.save(tf, schedule_manager.get_project_weight(project_id=project_uid))
+        np.save(tf, schedule_manager.get_project_weight(project_id = project_uid))
         _ = tf.seek(0)
-        return HttpResponse(tf,content_type='application/file')
+        return HttpResponse(tf,content_type = 'application/file')
 
 
 def is_project_finished(request, project_uid):
-    if request.method!='GET':
+    if request.method != 'GET':
         return HttpResponse(status = '270')
 
     key = request.META.get('HTTP_AUTH')
@@ -263,7 +263,7 @@ def is_project_finished(request, project_uid):
     return HttpResponse(status = '270')
 
 def get_project_result(request, project_uid):
-    if request.method!='GET':
+    if request.method != 'GET':
         return HttpResponse(status = '270')
 
     key = request.META.get('HTTP_AUTH')
@@ -275,15 +275,15 @@ def get_project_result(request, project_uid):
 
         project = Project.objects.get(uid = project_uid)
 
-        model_url=s3.generate_presigned_url("get_object",Params={
+        model_url = s3.generate_presigned_url("get_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':project.model_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
 
-        result_url=s3.generate_presigned_url("get_object",Params={
+        result_url = s3.generate_presigned_url("get_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':project.result_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
     
         return JsonResponse({
             "is_successful": True,
@@ -294,7 +294,7 @@ def get_project_result(request, project_uid):
     return HttpResponse(status = '270')
 
 def pause_project(request, project_uid):
-    if request.method!='POST':
+    if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
@@ -308,7 +308,7 @@ def pause_project(request, project_uid):
     target_project =  Project.objects.filter(uid = project_id)
 
     if(target_project.exists()):
-        target_project.status='STANDBY'
+        target_project.status = 'STANDBY'
         target_project.save()
         schedule_manager.pause_project(project_id)
         return JsonResponse({
@@ -327,7 +327,7 @@ def pause_project(request, project_uid):
 #     return None
 
 def get_available_project(request):
-    if request.method!='GET':
+    if request.method != 'GET':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] GET ONLY"
@@ -339,7 +339,7 @@ def get_available_project(request):
 
     project_id = _get_valid_project()
 
-    if(project_id != -1):
+    if(project_id  !=  -1):
         return JsonResponse({
             "is_successful": True,
             "state":"good",
@@ -353,7 +353,7 @@ def get_available_project(request):
         })
 
 def get_task_index(request, project_uid):
-    if request.method!='GET':
+    if request.method != 'GET':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] GET ONLY"
@@ -363,46 +363,46 @@ def get_task_index(request, project_uid):
     authorization_result = check_authorization(key)
     if(authorization_result): return authorization_result
 
-    task_index = _get_valid_task(project_id=project_uid)
-    total_task_number = _get_total_task_number(project_id=project_uid)
+    task_index = _get_valid_task(project_id = project_uid)
+    total_task_number = _get_total_task_number(project_id = project_uid)
 
 
     if(task_index > INVALID):
         ########################
         s3 = _get_boto3()
 
-        project=Project.objects.get(uid=project_uid)
+        project = Project.objects.get(uid = project_uid)
 
         epoch = project.epoch
         batch_size = project.batch_size
         valid_rate = project.valid_rate
 
-        url=s3.generate_presigned_url("get_object",Params={
+        url = s3.generate_presigned_url("get_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':project.model_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
 
-        task=Task.objects.get(uid=project.uid+str(task_index))
-        data_url=task.data_url
-        label_url=task.label_url
+        task = Task.objects.get(uid = project.uid+str(task_index))
+        data_url = task.data_url
+        label_url = task.label_url
         task.save()
 
-        if(task.uid == None):
+        if(task.uid  ==  None):
             return JsonResponse({
             "is_successful":False,
             "project_uid":project_uid,
             "message":"Wrong task index"
         })
 
-        data_url=s3.generate_presigned_url("get_object",Params={
+        data_url = s3.generate_presigned_url("get_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':data_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
 
-        label_url=s3.generate_presigned_url("get_object",Params={
+        label_url = s3.generate_presigned_url("get_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':label_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
         
         #######################
         return JsonResponse({
@@ -427,7 +427,7 @@ def get_task_index(request, project_uid):
 
 
 def start_project_task(request, project_uid):
-    if request.method!='POST':
+    if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
@@ -446,8 +446,8 @@ def start_project_task(request, project_uid):
             "message":"Invalid index"
         })
 
-    if(task_index != INVALID):
-        _start_task(project_id=project_uid, task_id=task_index)
+    if(task_index  !=  INVALID):
+        _start_task(project_id = project_uid, task_id = task_index)
         task = Task.objects.get(uid = project_uid + str(task_index))
         task.status = 'started'
         task.started_at = timezone.now()
@@ -465,11 +465,11 @@ def start_project_task(request, project_uid):
 
 
 def update_project_task(request, project_uid):
-    if request.method!='POST':
+    if request.method != 'POST':
         return HttpResponse(json.dumps({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
-        }),content_type='application/json')
+        }),content_type = 'application/json')
 
     key = request.META.get('HTTP_AUTH')
     authorization_result = check_authorization(key)
@@ -479,56 +479,56 @@ def update_project_task(request, project_uid):
     spent_time = float(request.POST.get('spent_time', '5'))
     numpy_file = request.FILES.get('gradient', INVALID)
 
-    if ((task_index == INVALID) or (spent_time == INVALID) or (numpy_file == INVALID)):
+    if ((task_index  ==  INVALID) or (spent_time  ==  INVALID) or (numpy_file  ==  INVALID)):
         return JsonResponse({
             "is_successful":False,
             "message":"INVALID params detected"
         })
 
-    credit_amout = Project.objects.get(uid=project_uid).credit
+    credit_amout = Project.objects.get(uid = project_uid).credit
 
     gradient = np.load(numpy_file,allow_pickle = True)
 
-    result = _update_project(project_id=project_uid,task_id=task_index,gradient=gradient, time = spent_time)
-    if(result == INVALID):
+    result = _update_project(project_id = project_uid,task_id = task_index,gradient = gradient, time = spent_time)
+    if(result  ==  INVALID):
         return JsonResponse({
         "is_successful":True,
         "state":"expired",
         "message":"Gradient Update fail. expired index"
         })
 
-    project=Project.objects.get(uid=project_uid)
+    project = Project.objects.get(uid = project_uid)
 
-    if(result == 0):
+    if(result  ==  0):
         s3 = _get_boto3()
 
         project.save_url = f'project/{project_uid}/model/save.npy'
-        project.current_step = schedule_manager.get_current_step(project_id=project_uid)
+        project.current_step = schedule_manager.get_current_step(project_id = project_uid)
 
-        url=s3.generate_presigned_url("put_object",Params={
+        url = s3.generate_presigned_url("put_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':project.save_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
 
         with TemporaryFile() as tf:
-            np.save(tf, np.array(_get_project_result(project_id=project_uid),dtype=object))
+            np.save(tf, np.array(_get_project_result(project_id = project_uid),dtype = object))
             _ = tf.seek(0)
-            requests.put(url=url,data=tf)
+            requests.put(url = url,data = tf)
 
-    if(_is_project_finished(project_id=project_uid)):
+    if(_is_project_finished(project_id = project_uid)):
         s3 = _get_boto3()
 
         project.result_url = f'project/{project_uid}/model/result.npy'
 
-        url=s3.generate_presigned_url("put_object",Params={
+        url = s3.generate_presigned_url("put_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':project.result_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
         
         with TemporaryFile() as tf:
-            np.save(tf, np.array(_get_project_result(project_id=project_uid),dtype=object))
+            np.save(tf, np.array(_get_project_result(project_id = project_uid),dtype = object))
             _ = tf.seek(0)
-            requests.put(url=url,data=tf)
+            requests.put(url = url,data = tf)
 
         project.status = 'FINISHED'
         project.finished_at = timezone.now()
@@ -540,7 +540,7 @@ def update_project_task(request, project_uid):
     task.inished_at = timezone.now()
     task.save()
 
-    if(not create_credit_log(case=2,userKey=key,amount=credit_amout)):
+    if(not create_credit_log(case = 2,userKey = key,amount = credit_amout)):
         return JsonResponse({
             "is_successful":True,
             "message":"Gradient Updated Success but Credit error occured :("
@@ -552,22 +552,22 @@ def update_project_task(request, project_uid):
     })
 
 def get_owned_projects(request):
-    if request.method!='GET':
+    if request.method != 'GET':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] GET ONLY"
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key=key).exists()==False:
+    if User.objects.filter(key = key).exists() == False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
         })
-    user=User.objects.get(key=key)
-    projects=Project.objects.filter(owner=user).all()
+    user = User.objects.get(key = key)
+    projects = Project.objects.filter(owner = user).all()
 
-    projects_json=[{
+    projects_json = [{
         'project_uid':p.uid,
         'progress':schedule_manager.get_project_progress(p.uid),
         'status':p.status,
@@ -581,25 +581,25 @@ def get_owned_projects(request):
 
 
 def error_report(request, project_uid):
-    if request.method != 'POST':
+    if request.method  !=  'POST':
         return HttpResponse(json.dumps({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
-        }),content_type='application/json')
+        }),content_type = 'application/json')
 
     schedule_manager.error_report(project_uid)
 
 def stop_project_task(request, projecy_uid):
-    if request.method != 'POST':
+    if request.method  !=  'POST':
         return HttpResponse(json.dumps({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
-        }),content_type='application/json')
+        }),content_type = 'application/json')
 
 # Belows are not for http requests. Belows are blocks for them
 
 def check_authorization(authorization_key):
-    if User.objects.filter(key=authorization_key).exists()==False:
+    if User.objects.filter(key = authorization_key).exists() == False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
@@ -609,21 +609,21 @@ def check_authorization(authorization_key):
 
 def create_credit_log(case, userKey, amount):
     
-    user = User.objects.get(key=userKey)
+    user = User.objects.get(key = userKey)
 
-    if (case==1):
+    if (case == 1):
         details = '크레딧 충전'
-        action='+'
+        action = '+'
         user.credit += amount
 
-    elif(case==2):
+    elif(case == 2):
         details = '자원 제공'
-        action='+'
+        action = '+'
         user.credit += amount
 
-    elif(case==3):
+    elif(case == 3):
         details = '프로젝트 비용'
-        action='-'
+        action = '-'
         user.credit -= amount
 
     else:
@@ -631,9 +631,9 @@ def create_credit_log(case, userKey, amount):
     
     user.save()
 
-    credit_log=CreditLog.objects.create(user=user,
-    action=action , details=details, amount=amount,
-    date= timezone.localtime(timezone.now()).strftime('%Y-%m-%d'))
+    credit_log = CreditLog.objects.create(user = user,
+    action = action , details = details, amount = amount,
+    date =  timezone.localtime(timezone.now()).strftime('%Y-%m-%d'))
     credit_log.save()
 
     return True
@@ -643,22 +643,22 @@ def _get_valid_project():
     return schedule_manager.get_valid_project()
 
 def _get_valid_task(project_id):
-    return schedule_manager.get_valid_task(project_id=project_id)
+    return schedule_manager.get_valid_task(project_id = project_id)
 
 def _get_total_task_number(project_id):
-    return schedule_manager.get_total_task_number(project_id=project_id)
+    return schedule_manager.get_total_task_number(project_id = project_id)
 
 def _get_project_result(project_id):
-    return schedule_manager.get_project_result(project_id=project_id)
+    return schedule_manager.get_project_result(project_id = project_id)
 
 def _start_task(project_id, task_id):
-    schedule_manager.start_project_task(project_id=project_id, task_no=task_id)
+    schedule_manager.start_project_task(project_id = project_id, task_no = task_id)
 
 def _update_project(project_id, task_id, gradient, time):
-    return schedule_manager.update_project(project_id=project_id, task_no=task_id, gradient=gradient, time = time)
+    return schedule_manager.update_project(project_id = project_id, task_no = task_id, gradient = gradient, time = time)
     
 def _is_project_finished(project_id):
-    return schedule_manager.is_project_finished(project_id=project_id)
+    return schedule_manager.is_project_finished(project_id = project_id)
 
 def _calculate_credit(parameter_number, epoch, batch_size, total_task):
     param_convt = math.log10(parameter_number)
@@ -682,22 +682,22 @@ def _load_projects_from_DB():
     for project in project_list:
         if(not(project.save_url)):
             continue
-        url=s3.generate_presigned_url("get_object",Params={
+        url = s3.generate_presigned_url("get_object",Params = {
             'Bucket':BUCKET_NAME,
             'Key':project.save_url
-        }, ExpiresIn=3600)
+        }, ExpiresIn = 3600)
 
         with TemporaryFile() as tf:
-            tf.write(requests.get(url=url).content)
+            tf.write(requests.get(url = url).content)
             _ = tf.seek(0)
-            weight = np.asarray(np.load(tf,allow_pickle=True)).astype(np.float32)
+            weight = np.asarray(np.load(tf,allow_pickle = True)).astype(np.float32)
 
 
-        schedule_manager.init_project(project_id=project.uid, total_task=project.max_step*project.step_size,
-        step_size=project.step_size, weight=weight, epoch=project.epoch,
+        schedule_manager.init_project(project_id = project.uid, total_task = project.max_step*project.step_size,
+        step_size = project.step_size, weight = weight, epoch = project.epoch,
         batch_size = project.batch_size, max_contributor = project.max_contributor, credit = project.credit)
         if(project.current_step > 0):
-            schedule_manager.restore(project_id=project.uid, saved_step = project.current_step)
+            schedule_manager.restore(project_id = project.uid, saved_step = project.current_step)
 
     return 1
     # gonna do this far later
@@ -708,5 +708,5 @@ def _get_boto3():
     access_key = '0C863406F8D54433789F'
     secret_key = 'CC66B33F3B1487B10DF50F82638B4065CD4723B0'
 
-    return boto3.client(service_name, endpoint_url=endpoint_url, aws_access_key_id=access_key,
-                      aws_secret_access_key=secret_key)
+    return boto3.client(service_name, endpoint_url = endpoint_url, aws_access_key_id = access_key,
+                      aws_secret_access_key = secret_key)

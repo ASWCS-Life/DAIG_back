@@ -3,11 +3,11 @@ from Cryptodome.Cipher import AES, PKCS1_OAEP
 import os
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
-encrypted_dir=os.path.join(package_directory,"encrypted_data")
+encrypted_dir = os.path.join(package_directory,"encrypted_data")
 
 def load_encrypted_data(data_path, key_path):
 
-    with open(key_path,"r", encoding="utf-8") as f:
+    with open(key_path,"r", encoding = "utf-8") as f:
         private_key = RSA.import_key(f.read())
 
     with open(data_path, "rb") as f:
@@ -24,11 +24,11 @@ def load_encrypted_data(data_path, key_path):
     return data.decode()
 
 def get_email():
-    key_path=os.path.join(encrypted_dir,"private.pem")
-    data_path=os.path.join(encrypted_dir,"encrypted_email.bin")
+    key_path = os.path.join(encrypted_dir,"private.pem")
+    data_path = os.path.join(encrypted_dir,"encrypted_email.bin")
     return load_encrypted_data(data_path, key_path)
 
 def get_password():
-    key_path=os.path.join(encrypted_dir,"private.pem")
-    data_path=os.path.join(encrypted_dir,"encrypted_pwd.bin")
+    key_path = os.path.join(encrypted_dir,"private.pem")
+    data_path = os.path.join(encrypted_dir,"encrypted_pwd.bin")
     return load_encrypted_data(data_path, key_path)
