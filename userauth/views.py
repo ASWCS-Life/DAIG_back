@@ -12,7 +12,7 @@ email_code = {}
 timer = {}
 
 def login(request):
-    if request.method !='POST':
+    if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
             "message":"[ERROR] POST ONLY"
@@ -71,7 +71,7 @@ def sign_up(request):
 
 def del_code(email):
     saved_code = email_code.get(email)
-    if saved_code !=None:
+    if saved_code != None:
         del email_code[email]
     
 
@@ -103,7 +103,7 @@ def send_email(request):
     )
 
     if message.send():
-        if timer.get(email) !=None:
+        if timer.get(email) != None:
             timer[email].cancel()
             del timer[email]
         email_code[email] = code

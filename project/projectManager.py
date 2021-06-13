@@ -165,6 +165,8 @@ class projectManager:
         return count
 
     def get_progress(self):
+        if(self.task_total_count == 0):
+            return 'ERROR'
         return f'{self.done_task_number}/{self.task_total_count}'
 
     ##################################################################

@@ -28,6 +28,7 @@ class scheduleManager:
 
     def init_project(self, project_id, total_task, step_size, weight, epoch, batch_size, max_contributor = -1, credit = 0, saved_step = INVALID):
         if project_id in self.project_list:
+            print("DUPLICATED PROJECT ID")
             return -1
 
         new_project = projectManager()

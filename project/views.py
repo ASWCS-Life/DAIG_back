@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from .models import *
-from ..credit.models import *
+from credit.models import *
 import boto3
 import json
 import requests
@@ -14,6 +14,7 @@ import json
 import numpy as np
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from manage import schedule_manager
 
@@ -69,6 +70,7 @@ def create_project(request):
     numpy_file = request.FILES.get('weight', INVALID)
 
     if(numpy_file  ==  INVALID):
+        print('FILE ERROR!')
         return JsonResponse({
             "is_successful":False,
             "message":"Invalid Numpy data"
@@ -76,9 +78,11 @@ def create_project(request):
 
     init_weight = np.load(request.FILES.get('weight'),allow_pickle = True)
 
-    schedule_manager.init_project(project_id = uid,total_task = total_task,step_size = step_size,
+    print('Project Initialized')
+    result = schedule_manager.init_project(project_id = uid,total_task = total_task,step_size = step_size,
         weight = init_weight, epoch = epoch, batch_size = batch_size, max_contributor = max_contributor, credit = credit)
 
+    print(result)
     return JsonResponse({
         "is_successful":True,
         "project_uid":project.uid,
@@ -103,7 +107,7 @@ def start_project(request, project_uid):
     
     project = Project.objects.get(uid = project_uid)
 
-    if(project.exists()):
+    if(project):
         project.status = 'INPROGRESS'
         project.status = 'started'
         project.started_at = timezone.now()
