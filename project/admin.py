@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import *
 
 class ProjectAdmin(admin.ModelAdmin):
-    model=Project
+    model = Project
     # fieldsets = [
     #     (None, {'fields': ['uid','hello','world']}),
     #     ('Date information', {'fields': ['created_at'], 'classes': ['collapse']}),
@@ -20,7 +20,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = ['created_at']
 
 class TaskAdmin(admin.ModelAdmin):
-    model=Task
+    model = Task
 
     list_display = (
         'uid',
@@ -32,7 +32,7 @@ class TaskAdmin(admin.ModelAdmin):
     )
 
 class ContributionAdmin(admin.ModelAdmin):
-    model=Contribution
+    model = Contribution
 
     list_display = (
         'project',
