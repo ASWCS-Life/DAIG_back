@@ -6,7 +6,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from .models import *
-from ..credit.models import *
+from credit.models import *
 import boto3
 import json
 import requests
