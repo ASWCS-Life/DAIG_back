@@ -21,7 +21,7 @@ from manage import schedule_manager
 User = get_user_model()
 INVALID = -1
 
-BUCKET_NAME = 'DAIG'
+BUCKET_NAME = 'daig'
 
 def create_project(request):
     if request.method != 'POST':
