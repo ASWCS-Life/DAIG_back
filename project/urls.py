@@ -20,6 +20,9 @@ urlpatterns = [
     path('<str:project_uid>/task/get',get_task_index),
     path('<str:project_uid>/task/start/',start_project_task),
     path('<str:project_uid>/task/update/',update_project_task),
+    path('<str:project_uid>/task/stop/',stop_project_task),
+
+    path('<str:project_ui/error/',error_report)
 
     # path('sentry-debug/', trigger_error)
 ]

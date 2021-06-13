@@ -96,8 +96,6 @@ class projectManager:
         self.epoch = epoch
         self.batch_size = batch_size
 
-    def start_project(self):
-        self.status = 'INPROGRESS'
     ##################################################################
     # Get functions
 
@@ -171,6 +169,14 @@ class projectManager:
 
     ##################################################################
     # Update and Perform related functions
+    def start_project(self):
+        self.status = 'INPROGRESS'
+
+    def error_report(self):
+        self.status = 'ERROR'
+
+    def block(self):
+        self.status = 'BLOCKED'
 
     def start_task(self, task_index):
         if(task_index < 0):
@@ -222,6 +228,14 @@ class projectManager:
 
         return self.current_step_done_count
 
+    def stop_task(self, task_no):
+        task_number = int(task_no)
+        step = math.floor(task_number / self.task_step_size)
+
+        if(step == self.current_step):
+            if(self.task_step_schedule[task_number % self.task_step_size] != DONE):
+                self.task_step_schedule[task_number % self.task_step_size] = STANDBY
+            
     ###################################################################
     # logical functions
 
@@ -232,7 +246,7 @@ class projectManager:
         return self.current_step_done_count == self.task_step_size
 
     def is_project_available(self):
-        return not(self.is_max_contributor() or self.is_project_finished() or (self.get_task_index_proto() == -1))
+        return not(self.is_max_contributor() or self.is_project_finished() or (self.get_task_index_proto() == -1)) and (self.status == 'INPROGRESS')
 
     def task_time_limit_check(self, task_time):
         return (time.time() - task_time) > (self.time_threshold * 1.5)

@@ -580,6 +580,21 @@ def get_owned_projects(request):
     })
 
 
+def error_report(request, project_uid):
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({
+            "is_successful":False,
+            "message":"[ERROR] POST ONLY"
+        }),content_type='application/json')
+
+    schedule_manager.error_report(project_uid)
+
+def stop_project_task(request, projecy_uid):
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({
+            "is_successful":False,
+            "message":"[ERROR] POST ONLY"
+        }),content_type='application/json')
 
 # Belows are not for http requests. Belows are blocks for them
 
@@ -591,7 +606,6 @@ def check_authorization(authorization_key):
         })
     else:
         return False
-
 
 def create_credit_log(case, userKey, amount):
     
@@ -663,9 +677,24 @@ def _load_projects_from_DB():
     if(not(project_list.exists())):
         return -1
 
+    s3 = _get_boto3()
+
     for project in project_list:
+        if(not(project.save_url)):
+            continue
+        url=s3.generate_presigned_url("get_object",Params={
+            'Bucket':BUCKET_NAME,
+            'Key':project.save_url
+        }, ExpiresIn=3600)
+
+        with TemporaryFile() as tf:
+            tf.write(requests.get(url=url).content)
+            _ = tf.seek(0)
+            weight = np.asarray(np.load(tf,allow_pickle=True)).astype(np.float32)
+
+
         schedule_manager.init_project(project_id=project.uid, total_task=project.max_step*project.step_size,
-        step_size=project.step_size, weight=project.init_weight, epoch=project.epoch,
+        step_size=project.step_size, weight=weight, epoch=project.epoch,
         batch_size = project.batch_size, max_contributor = project.max_contributor, credit = project.credit)
         if(project.current_step > 0):
             schedule_manager.restore(project_id=project.uid, saved_step = project.current_step)

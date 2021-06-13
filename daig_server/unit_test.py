@@ -20,7 +20,8 @@ class ProjectManagerTests(unittest.TestCase):
         tmp_init_weight = [np.random.rand(9)/10, np.random.rand(9)/10]
         tmp_init_weight = np.array(tmp_init_weight, dtype=object) 
 
-        self.schedule_manager.init_project('100352',12,3,tmp_init_weight, epoch = 10, batch_size = 32)
+        self.schedule_manager.init_project('100352',30,6,tmp_init_weight, epoch = 10, batch_size = 32)
+        self.schedule_manager.start_project('100352')
 
         self.assertEqual(self.schedule_manager.init_project('100352',30,6,tmp_init_weight, epoch = 10, batch_size = 32), -1)
 
@@ -67,7 +68,7 @@ class ProjectManagerTests(unittest.TestCase):
         self.schedule_manager.update_project(new_project,new_task_3,tmp_gradient_3,10)
         self.schedule_manager.deallocate_user('100003')
 
-        self.assertEqual(self.schedule_manager.project_list[new_project].get_task_index(), 2)
+        self.assertEqual(self.schedule_manager.project_list[new_project].get_task_index(), 3)
         self.assertEqual(self.schedule_manager.get_available_users(), 3)
 
 # execute unit test
