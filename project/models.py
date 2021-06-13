@@ -1,11 +1,6 @@
-from math import trunc
-from botocore import model
 from django.db import models
-from django.contrib import admin
-from django.conf import settings
 from bson.objectid import ObjectId
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 class Project (models.Model):
     uid = models.CharField(

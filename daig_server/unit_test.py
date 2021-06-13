@@ -1,8 +1,6 @@
 import unittest
 from scheduleManager import scheduleManager
 import numpy as np
-import threading as th
-import time
 
 class ProjectManagerTests(unittest.TestCase): 
 

@@ -1,7 +1,4 @@
-from datetime import time
 import math
-from botocore.configprovider import SectionConfigProvider
-from django.shortcuts import render, resolve_url
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
