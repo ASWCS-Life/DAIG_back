@@ -18,23 +18,23 @@ import json
 User=get_user_model()
 
 def get_current_credit(request):
-    if request.method!='GET':
+    if request.method != 'GET':
         return JsonResponse({
-            "is_successful":False,
-            "message":"[ERROR] POST ONLY"
+            "is_successful" : False,
+            "message" : "[ERROR] POST ONLY"
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key=key).exists()==False:
+    if User.objects.filter(key = key).exists() == False:
         return JsonResponse({
-            "is_successful":False,
-            "message":"Expired key. Please Login again."
+            "is_successful" : False,
+            "message" : "Expired key. Please Login again."
         })
-    user=User.objects.get(key=key)
+    user = User.objects.get(key = key)
 
     return JsonResponse({
-        "id":user.username,
-        "credit":user.credit
+        "id" : user.username,
+        "credit" : user.credit
     })
 
     
@@ -43,54 +43,54 @@ def get_current_credit(request):
 def get_credit_log(request):
     
     
-    if request.method!='GET':
+    if request.method != 'GET':
         return JsonResponse({
-            "is_successful":False,
-            "message":"[ERROR] GET ONLY"
+            "is_successful" : False,
+            "message" : "[ERROR] GET ONLY"
         })
 
     key = request.META.get("HTTP_AUTH")
-    user=User.objects.get(key=key)
+    user = User.objects.get(key = key)
 
-    if user==None:
+    if user == None:
         return JsonResponse({
-            "is_successful":False,
-            "message":"Expired key. Please Login again."
+            "is_successful" : False,
+            "message" : "Expired key. Please Login again."
         })
 
-    if CreditLog.objects.filter(user=user).exists()==False:
+    if CreditLog.objects.filter(user = user).exists() == False:
         return JsonResponse({
-            "is_successful":False,
-            "message":"CreditLog does not exist."
+            "is_successful" : False,
+            "message" : "CreditLog does not exist."
         })
 
 
-    log_list=CreditLog.objects.filter(user=user)
-    context=[]
+    log_list = CreditLog.objects.filter(user = user)
+    context = []
 
     for i in range(len(log_list)):
-        context.append({'action': log_list[i].action,'details': log_list[i].details, 'amount': log_list[i].amount, 'date':log_list[i].date})
+        context.append({'action': log_list[i].action, 'details': log_list[i].details, 'amount': log_list[i].amount, 'date':log_list[i].date})
     
 
-    return JsonResponse(context,safe=False)
+    return JsonResponse(context, safe = False)
     
 def create_credit_log(case, userKey, amount):
 
-    user = User.objects.get(key=userKey)
+    user = User.objects.get(key = userKey)
 
-    if (case==1):
+    if (case == 1):
         details = '크레딧 충전'
-        action='+'
+        action ='+'
         user.credit += amount
 
-    elif(case==2):
+    elif(case == 2):
         details = '리소스 공유'
-        action='+'
+        action ='+'
         user.credit += amount
 
-    elif(case==3):
+    elif(case == 3):
         details = '프로젝트 비용'
-        action='-'
+        action ='-'
         user.credit -= amount
 
     else:
@@ -98,9 +98,9 @@ def create_credit_log(case, userKey, amount):
 
     user.save()
 
-    credit_log=CreditLog.objects.create(user=user,
-    action=action , details=details, amount=amount,
-    date= timezone.localtime(timezone.now()).strftime('%Y-%m-%d'))
+    credit_log = CreditLog.objects.create(user = user,
+    action = action , details = details, amount = amount,
+    date = timezone.localtime(timezone.now()).strftime('%Y-%m-%d'))
     credit_log.save()
 
     return True
@@ -114,43 +114,38 @@ def home(request):
             payment = OrderPayment.from_order(order)
             print("POST USER KEY: ")
             print(payment.order.userKey)
-            return HttpResponseRedirect(reverse('payment:pay', args=[payment.pk]))
+            return HttpResponseRedirect(reverse('payment:pay', args = [payment.pk]))
     else:
         
         key = request.META.get("HTTP_AUTH")
         
-        if key==None:
+        if key == None:
             return JsonResponse({
-            "is_successful":False,
-            "message":"Expired key. Please Login again."
+            "is_successful" : False,
+            "message" : "Expired key. Please Login again."
         })
         
-        user = User.objects.get(key=key)
+        user = User.objects.get(key = key)
 
-        if user==None:
+        if user == None:
             return JsonResponse({
-            "is_successful":False,
-            "message":"Expired key. Please Login again."
+            "is_successful" : False,
+            "message" : "Expired key. Please Login again."
         })
 
         form = OrderForm(initial={
-            'userKey': key,
-
-            'name': '크레딧 충전',
-            'amount': 0,
-            'buyer': user.username,
-            'email': user.email,
-            #'addr': '주소',
-            #'subaddr': '상세 주소',
-            #'postcode': '우편번호',
-            #'tel': '010-1234-5678'
+            'userKey' : key,
+            'name' : '크레딧 충전',
+            'amount' : 0,
+            'buyer' : user.username,
+            'email' : user.email,
         })
 
-        return render(request, 'home.html', {'form': form})
+        return render(request, 'home.html', {'form' : form})
 
 
 def retry_order(request, order_id):
-    order = get_object_or_404(Order, pk=order_id)
+    order = get_object_or_404(Order, pk = order_id)
     payment = OrderPayment.from_order(order)
 
-    return HttpResponseRedirect(reverse('payment:pay', args=[payment.pk]))
+    return HttpResponseRedirect(reverse('payment:pay', args = [payment.pk]))

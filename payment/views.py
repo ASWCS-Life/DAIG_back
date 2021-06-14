@@ -19,7 +19,7 @@ User=get_user_model()
 
 def get_payment_model():
     try:
-        return django_apps.get_model(settings.PAYMENT_MODEL, require_ready=False)
+        return django_apps.get_model(settings.PAYMENT_MODEL, require_ready = False)
     except ValueError:
         raise ImproperlyConfigured("PAYMENT_MODEL must be of the form 'app_label.model_name'")
     except LookupError:
@@ -29,7 +29,7 @@ def get_payment_model():
 
 
 def pay(request, payment_id):
-    payment = get_object_or_404(get_payment_model(), pk=payment_id)
+    payment = get_object_or_404(get_payment_model(), pk = payment_id)
 
     payment_data = settings.PAYMENT_CONFIG.copy()
     payment_data.update({
@@ -39,9 +39,7 @@ def pay(request, payment_id):
         'buyer_email' : payment.buyer_email or '',
         'buyer_name' : payment.buyer_name or '',
         'buyer_tel' : payment.buyer_tel or '',
-        #'buyer_addr' : payment.buyer_addr or '',
-        #'buyer_postcode' : payment.buyer_postcode or '',
-        'm_redirect_url' : reverse('payment:update', args=[payment.pk, ])
+        'm_redirect_url' : reverse('payment:update', args = [payment.pk, ])
     })
 
     iamport = IamportRest()
@@ -49,7 +47,7 @@ def pay(request, payment_id):
     iamport.prepare(payment.uid, payment.amount)
 
     return render(request, 'payment/summary.html', {
-        'payment_data_json': mark_safe(json.dumps(payment_data, ensure_ascii=False)),
+        'payment_data_json': mark_safe(json.dumps(payment_data, ensure_ascii = False)),
         'payment_data': payment_data,
         'payment': payment,
         'merchant_id': settings.PAYMENT_MERCHANT_ID
@@ -57,7 +55,7 @@ def pay(request, payment_id):
 
 
 def update(request, payment_id):
-    payment = get_object_or_404(get_payment_model(), pk=payment_id)
+    payment = get_object_or_404(get_payment_model(), pk = payment_id)
 
     imp_uid = request.GET.get('imp_uid', None)
     mct_uid = request.GET.get('merchant_uid', None)
@@ -96,13 +94,13 @@ def update(request, payment_id):
         payment.imp_result = '이상 상태'
         payment.save()
 
-    return HttpResponseRedirect(reverse('payment:result', args=[payment.pk]))
+    return HttpResponseRedirect(reverse('payment:result', args = [payment.pk]))
 
 
 def result(request, payment_id):
-    payment = get_object_or_404(get_payment_model(), pk=payment_id)
-    userKey=payment.order.userKey
-    user = User.objects.get(key=userKey)
+    payment = get_object_or_404(get_payment_model(), pk = payment_id)
+    userKey = payment.order.userKey
+    
     if payment.pay_result == 'success':
         create_credit_log(1,userKey,payment.amount)
 
