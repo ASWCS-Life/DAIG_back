@@ -106,6 +106,7 @@ def create_project(request):
 
         project.save()
 
+    create_credit_log(case = 3,userKey = key,amount = credit*total_task)
     print('Project Initialized')
 
     return JsonResponse({
@@ -694,7 +695,7 @@ def _calculate_credit(parameter_number, epoch, batch_size, total_task):
     credit = (2**param_convt) * max(batch_convt-3,1) * epoch_convt * 10
     credit = credit/total_task
 
-    return credit
+    return credit/50
 
 def load_projects_from_DB():
     schedule_manager.reset()
@@ -705,10 +706,10 @@ def load_projects_from_DB():
     s3 = _get_boto3()
 
     for project in project_list:
-        if(project.status == 'FINISHED'):
-            continue
-        
         project.save_url = f'project/{project.uid}/model/save.npy'
+        if(project.status == 'FINISHED'):
+            project.save_url = f'project/{project.uid}/model/result.npy'
+
         if(not(project.save_url)):
             continue
         url = s3.generate_presigned_url("get_object",Params = {
@@ -722,8 +723,8 @@ def load_projects_from_DB():
             weight = np.asarray(np.load(tf,allow_pickle = True)).astype(np.float32)
 
         schedule_manager.init_project(project_id = project.uid, total_task = project.max_step*project.step_size,
-        step_size = project.step_size, weight = weight, epoch = project.epoch,
-        batch_size = project.batch_size, max_contributor = project.max_contributor, credit = project.credit)
+            step_size = project.step_size, weight = weight, epoch = project.epoch,
+            batch_size = project.batch_size, max_contributor = project.max_contributor, credit = project.credit)
         if(project.current_step and project.current_step > 0):
             schedule_manager.restore(project_id = project.uid, saved_step = project.current_step)
 
