@@ -22,6 +22,7 @@ class scheduleManager:
     project_user_match_list = {'project_id':['users_list(not user list dictionary)']}
 
     def __init__(self):
+        self.rebooted = False
         self.user_list = {}
         self.project_list = {}
         self.project_user_match_list = {}
