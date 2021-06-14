@@ -14,15 +14,23 @@ import json
 import numpy as np
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from manage import schedule_manager
 
 User = get_user_model()
 INVALID = -1
 
-BUCKET_NAME = 'DAIG'
+INITIALIZE1 = False
+
+BUCKET_NAME = 'daig'
 
 def create_project(request):
+    INITIALIZED = INITIALIZE1
+    if(not INITIALIZED):
+        INITIALIZED = True
+        load_projects_from_DB()
+
     if request.method != 'POST':
         return JsonResponse({
             "is_successful":False,
@@ -30,7 +38,7 @@ def create_project(request):
         })
 
     key = request.META.get('HTTP_AUTH')
-    if User.objects.filter(key = key).exists()  ==  False:
+    if User.objects.filter(key = key).exists() == False:
         return JsonResponse({
             "is_successful":False,
             "message":"Expired key. Please Login again."
@@ -68,7 +76,8 @@ def create_project(request):
 
     numpy_file = request.FILES.get('weight', INVALID)
 
-    if(numpy_file  ==  INVALID):
+    if(numpy_file == INVALID):
+        print('FILE ERROR!')
         return JsonResponse({
             "is_successful":False,
             "message":"Invalid Numpy data"
@@ -76,8 +85,28 @@ def create_project(request):
 
     init_weight = np.load(request.FILES.get('weight'),allow_pickle = True)
 
-    schedule_manager.init_project(project_id = uid,total_task = total_task,step_size = step_size,
+    result = schedule_manager.init_project(project_id = uid,total_task = total_task,step_size = step_size,
         weight = init_weight, epoch = epoch, batch_size = batch_size, max_contributor = max_contributor, credit = credit)
+    
+    if(result == 0):
+        s3 = _get_boto3()
+
+        project.save_url = f'project/{uid}/model/save.npy'
+        project.current_step = schedule_manager.get_current_step(project_id = uid)
+
+        url = s3.generate_presigned_url("put_object",Params = {
+            'Bucket':BUCKET_NAME,
+            'Key':project.save_url
+        }, ExpiresIn = 3600)
+
+        with TemporaryFile() as tf:
+            np.save(tf, np.array(_get_project_result(project_id = uid),dtype = object))
+            _ = tf.seek(0)
+            requests.put(url = url,data = tf)
+
+        project.save()
+
+    print('Project Initialized')
 
     return JsonResponse({
         "is_successful":True,
@@ -103,7 +132,7 @@ def start_project(request, project_uid):
     
     project = Project.objects.get(uid = project_uid)
 
-    if(project.exists()):
+    if(project):
         project.status = 'INPROGRESS'
         project.status = 'started'
         project.started_at = timezone.now()
@@ -384,7 +413,7 @@ def get_task_index(request, project_uid):
         label_url = task.label_url
         task.save()
 
-        if(task.uid  ==  None):
+        if(task.uid == None):
             return JsonResponse({
             "is_successful":False,
             "project_uid":project_uid,
@@ -476,7 +505,7 @@ def update_project_task(request, project_uid):
     spent_time = float(request.POST.get('spent_time', '5'))
     numpy_file = request.FILES.get('gradient', INVALID)
 
-    if ((task_index  ==  INVALID) or (spent_time  ==  INVALID) or (numpy_file  ==  INVALID)):
+    if ((task_index == INVALID) or (spent_time == INVALID) or (numpy_file == INVALID)):
         return JsonResponse({
             "is_successful":False,
             "message":"INVALID params detected"
@@ -487,7 +516,7 @@ def update_project_task(request, project_uid):
     gradient = np.load(numpy_file,allow_pickle = True)
 
     result = _update_project(project_id = project_uid,task_id = task_index,gradient = gradient, time = spent_time)
-    if(result  ==  INVALID):
+    if(result == INVALID):
         return JsonResponse({
         "is_successful":True,
         "state":"expired",
@@ -496,7 +525,7 @@ def update_project_task(request, project_uid):
 
     project = Project.objects.get(uid = project_uid)
 
-    if(result  ==  0):
+    if(result == 0):
         s3 = _get_boto3()
 
         project.save_url = f'project/{project_uid}/model/save.npy'
@@ -667,16 +696,19 @@ def _calculate_credit(parameter_number, epoch, batch_size, total_task):
 
     return credit
 
-def _load_projects_from_DB():
+def load_projects_from_DB():
     schedule_manager.reset()
-    project_list = Project.objects.filter(status = 'INPROGRESS')
-
+    project_list = Project.objects.all()
     if(not(project_list.exists())):
         return -1
 
     s3 = _get_boto3()
 
     for project in project_list:
+        if(project.status == 'FINISHED'):
+            continue
+        
+        project.save_url = f'project/{project.uid}/model/save.npy'
         if(not(project.save_url)):
             continue
         url = s3.generate_presigned_url("get_object",Params = {
@@ -689,11 +721,10 @@ def _load_projects_from_DB():
             _ = tf.seek(0)
             weight = np.asarray(np.load(tf,allow_pickle = True)).astype(np.float32)
 
-
         schedule_manager.init_project(project_id = project.uid, total_task = project.max_step*project.step_size,
         step_size = project.step_size, weight = weight, epoch = project.epoch,
         batch_size = project.batch_size, max_contributor = project.max_contributor, credit = project.credit)
-        if(project.current_step > 0):
+        if(project.current_step and project.current_step > 0):
             schedule_manager.restore(project_id = project.uid, saved_step = project.current_step)
 
     return 1
