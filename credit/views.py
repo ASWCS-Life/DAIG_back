@@ -42,34 +42,26 @@ def get_current_credit(request):
 
 def get_credit_log(request):
     
-    
+    context = []
+
     if request.method != 'GET':
-        return JsonResponse({
-            "is_successful" : False,
-            "message" : "[ERROR] GET ONLY"
-        })
+        return JsonResponse(context, safe = False)
 
     key = request.META.get("HTTP_AUTH")
     user = User.objects.get(key = key)
 
     if user == None:
-        return JsonResponse({
-            "is_successful" : False,
-            "message" : "Expired key. Please Login again."
-        })
+        return JsonResponse(context, safe = False)
 
     if CreditLog.objects.filter(user = user).exists() == False:
-        return JsonResponse({
-            "is_successful" : False,
-            "message" : "CreditLog does not exist."
-        })
+        return JsonResponse(context, safe = False)
 
 
     log_list = CreditLog.objects.filter(user = user)
-    context = []
 
     for i in range(len(log_list)):
-        context.append({'action': log_list[i].action, 'details': log_list[i].details, 'amount': log_list[i].amount, 'date':log_list[i].date})
+        context.append({'action' : log_list[i].action, 'details' : log_list[i].details, 'amount' : log_list[i].amount,
+        'date' : log_list[i].date})
     
 
     return JsonResponse(context, safe = False)
