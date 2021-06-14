@@ -25,6 +25,7 @@ BUCKET_NAME = 'daig'
 
 def create_project(request):
     if(not schedule_manager.rebooted):
+        schedule_manager.rebooted = True
         load_projects_from_DB()
 
     if request.method != 'POST':
