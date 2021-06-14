@@ -21,14 +21,10 @@ from manage import schedule_manager
 User = get_user_model()
 INVALID = -1
 
-INITIALIZE1 = False
-
 BUCKET_NAME = 'daig'
 
 def create_project(request):
-    INITIALIZED = INITIALIZE1
-    if(not INITIALIZED):
-        INITIALIZED = True
+    if(not schedule_manager.rebooted):
         load_projects_from_DB()
 
     if request.method != 'POST':
@@ -68,12 +64,6 @@ def create_project(request):
 
     status = 'STANDBY'
 
-    project = Project.objects.create(uid = uid,owner = user,
-        max_contributor = max_contributor,status = status, max_step = int(total_task/step_size),
-        created_at = timezone.now(),
-        step_size = step_size, epoch = epoch, batch_size = batch_size, valid_rate = valid_rate,
-        credit = credit)
-
     numpy_file = request.FILES.get('weight', INVALID)
 
     if(numpy_file == INVALID):
@@ -82,6 +72,12 @@ def create_project(request):
             "is_successful":False,
             "message":"Invalid Numpy data"
         })
+
+    project = Project.objects.create(uid = uid,owner = user,
+        max_contributor = max_contributor,status = status, max_step = int(total_task/step_size),
+        created_at = timezone.now(),
+        step_size = step_size, epoch = epoch, batch_size = batch_size, valid_rate = valid_rate,
+        credit = credit)
 
     init_weight = np.load(request.FILES.get('weight'),allow_pickle = True)
 
