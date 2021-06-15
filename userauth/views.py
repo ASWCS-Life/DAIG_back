@@ -204,44 +204,5 @@ def send_username_on_email(request):
             "message":"Sent Email"
     })
 
-def send_username_on_email(request):
-    email = request.POST.get('email',None)
-    username=request.POST.get('username',None)
-    if email == None:
-        return JsonResponse({
-            "is_successful":False,
-            "message":"No email detected."
-        })
-    
-    if not User.objects.filter(email = email, username = username).exists():
-        return JsonResponse({
-            "is_successful":False,
-            "message":"Not registered email."
-        })
-
-    user=User.objects.get(email = email, username = username)
-    username=user.username
-    encrypted=''
-    for i, v in enumerate(list(username)):
-        if i%2==0:
-            encrypted+=v
-        else:
-            encrypted+='*'
-    
-    message_title = 'DAIG Service Verification Email'
-    message_context = f'Your ID: \n\n{encrypted}'
-
-    message = EmailMessage(
-        message_title,
-        message_context,
-        to = [email]
-    )
-
-    message.send()
-
-    return JsonResponse({
-            "is_successful":True,
-            "message":"Sent Email"
-    })
 
 # Create your views here.
