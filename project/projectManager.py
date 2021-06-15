@@ -35,7 +35,7 @@ class projectManager:
         # total_count => total task number
         # step_size => each step size
         # total_count % step_size should be zero (or not later)
-        self.task_total_count = 0
+        self.task_total_count = 1
         self.task_step_size = 0
         self.done_task_number = 0
 
@@ -257,7 +257,7 @@ class projectManager:
         return (time.time() - task_time) > 3 * SECOND
 
     def is_project_finished(self):
-        if( self.done_task_number >= self.task_total_count):
+        if (self.done_task_number >= self.task_total_count):
             self.finished = True
             self.status = 'DONE'
         else:
