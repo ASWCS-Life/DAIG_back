@@ -257,6 +257,7 @@ class projectManager:
         return (time.time() - task_time) > 3 * SECOND
 
     def is_project_finished(self):
+        print(self.done_task_number, self.task_total_count)
         if (self.done_task_number >= self.task_total_count):
             self.finished = True
             self.status = 'DONE'
