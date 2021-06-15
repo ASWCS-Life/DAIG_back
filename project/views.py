@@ -294,7 +294,7 @@ def get_project_result(request, project_uid):
     authorization_result = check_authorization(key)
     if(authorization_result): return authorization_result
 
-    if not schedule_manager.is_project_finished(project_id = project_uid):
+    if schedule_manager.is_project_finished(project_id = project_uid):
         s3 = _get_boto3()
 
         project = Project.objects.get(uid = project_uid)
