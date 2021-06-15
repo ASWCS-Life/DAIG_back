@@ -589,6 +589,11 @@ def get_owned_projects(request):
             "message":"Expired key. Please Login again."
         })
     user = User.objects.get(key = key)
+
+    if(not schedule_manager.rebooted):
+        schedule_manager.rebooted = True
+        load_projects_from_DB()
+
     projects = Project.objects.filter(owner = user).all()
 
     projects_json = [{
